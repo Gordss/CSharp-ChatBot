@@ -9,6 +9,8 @@ using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using static WebAPITest.Controllers.Query;
 
 namespace WebAPITest.Controllers
 {
@@ -23,97 +25,105 @@ namespace WebAPITest.Controllers
         /// </summary>
         /// <returns>A JSON object with data</returns>
         //[HttpGet]
-        [HttpGet("{utterance}", Name = "Get")]
-        public async Task<IEnumerable<string>> GetFromApiAsync(string utterance)
+        public async Task<IEnumerable<string>> GetFromApiAsync(RootObject data)
         {
 
             HttpClient client = new HttpClient();
 
-            var data = await this.GetFromLuisAsync(utterance);
-            //use the data from LUIS to make the query and get the respective data from the ICB API
-            //TODO needs to be finished
-
-            var intent = JsonConvert.DeserializeObject<Dictionary<string, string>>(data.ToString());
-
-            string processedIntent = intent["prediction"];
+            var processedIntent = data.topScoringIntent;
 
             string actualQuery = string.Empty;
+            string url = "https://i4sbprod-apimanagement.azure-api.net/analysis/";
 
-            switch (processedIntent)
+            switch (processedIntent.intent)//compose the query
             {
-                case "KPIRequestData":
-                    //compose the respective query eg KPIRequestData
-                    var dataInJSON1 = JsonConvert.DeserializeObject<Dictionary<string,string>>(intent["entities"]);
-                    KPIRequestData currentObj1 = new KPIRequestData();
-                    currentObj1.kpiType = dataInJSON1["kpiType"];
-                    currentObj1.workOrder = dataInJSON1["workOrder"];
-                    currentObj1.part = dataInJSON1["part"];
-                    actualQuery = JsonConvert.SerializeObject(currentObj1);
-                    break;
-                case "KPIRequestDataInRange":
-                    //compose the respective query eg KPIRequestDataInRange
-                    var dataInJSON2 = JsonConvert.DeserializeObject<Dictionary<string, string>>(intent["entities"]);
-                    KPIRequestDataInRange currentObj2 = new KPIRequestDataInRange();
-                    currentObj2.kpiType = dataInJSON2["kpiType"];
-                    currentObj2.workOrder = dataInJSON2["workOrder"];
-                    currentObj2.part = dataInJSON2["part"];
-                    currentObj2.before = DateTime.Parse(dataInJSON2["before"]);
-                    currentObj2.after = DateTime.Parse(dataInJSON2["after"]);
-                    currentObj2.count = Int32.Parse(dataInJSON2["count"]);
-                    actualQuery = JsonConvert.SerializeObject(currentObj2);
-                    break;
+                case "None":
+                    return new string[] { "Error" };
                 case "MachineRequestData":
-                    //compose the respective query eg MachineRequestData
-                    var dataInJSON3 = JsonConvert.DeserializeObject<Dictionary<string, string>>(intent["entities"]);
+                    url += "Machine/Last";
+                    var dataInJSON3 = data.entities;
                     MachineRequestData currentObj3 = new MachineRequestData();
-                    currentObj3.sensorId = dataInJSON3["Machine"];
-                    currentObj3.type = dataInJSON3["type"];
+                    currentObj3.sensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
+                    currentObj3.type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
                     actualQuery = JsonConvert.SerializeObject(currentObj3);
                     break;
-                case "MachineRequestDataInRange":
-                    //compose the respective query eg MachineRequestDataInRange
-                    var dataInJSON4 = JsonConvert.DeserializeObject<Dictionary<string, string>>(intent["entities"]);
-                    MachineRequestDataInRange currentObj4 = new MachineRequestDataInRange();
-                    currentObj4.sensorId = dataInJSON4["Machine"];
-                    currentObj4.type = dataInJSON4["type"];
-                    currentObj4.before = DateTime.Parse(dataInJSON4["before"]);
-                    currentObj4.after = DateTime.Parse(dataInJSON4["after"]);
-                    currentObj4.count = Int32.Parse(dataInJSON4["count"]);
-                    actualQuery = JsonConvert.SerializeObject(currentObj4);
-                    break;
-                default://When the intent isnt recognised to return an error message to the WPF
-                    //TODO
-                    ProcessFinalStringAsync(new string[] { "Error" });
+                default:
+                    url += "KPI/Last";
+                    var dataInJSON1 = data.entities;
+                    KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
+                    //currentObj1.kpiType = dataInJSON1.Find(e => e.type == "kpiType").entity;
+                    int buf;
+                    currentObj1.kpiType = processedIntent.intent;
+                    currentObj1.workOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
+
+                    //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
+                    //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
+                    //    processedIntent.intent == "OrderActualRemainigWork")
+                    //{
+                    //    var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
+                    //    if (temp != null)
+                    //    {
+                    //        return new string[] { "ErrorWithPart" };
+                    //    }
+                    //}
+
+
+                    if (processedIntent.intent != "OrderRemainingWorkDeviation" &&
+                        processedIntent.intent != "OrderEstimatedRemainigWork" &&
+                        processedIntent.intent != "OrderActualRemainigWork")
+                    {
+
+                        var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
+                        if (temp != null)
+                        {
+                            var serializedParent = JsonConvert.SerializeObject(currentObj1);
+                            KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
+                            child.part = temp;
+                            actualQuery = JsonConvert.SerializeObject(child);
+                            break;
+                        }
+                    }
+
+                    //KPIRequestData currentObj1 = new KPIRequestData();
+                    //currentObj1.kpiType = "OTD";
+                    //currentObj1.workOrder = "8383";
+                    //currentObj1.part = "1";
+
+                    actualQuery = JsonConvert.SerializeObject(currentObj1);
                     break;
             }
 
-            string query = "{\"workOrder\":\"8383\",\"kpiType\":\"OTD\",\"part\":\"1\"}";
+            //actualQuery = "{\"workOrder\":\"8383\",\"kpiType\":\"OTD\",\"part\":\"1\"}";
+
+            //actualQuery = actualQuery.Trim('\\').Substring(1,actualQuery.Length-2);
+
 
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "1f0563fd67ca436db10cc4bdef08aeea");
-            HttpResponseMessage message = await client.PostAsync("https://i4sbprod-apimanagement.azure-api.net/analysis/KPI/Last", new StringContent(query, Encoding.UTF8, "application/json"));
+            HttpResponseMessage message = await client.PostAsync(url, new StringContent(actualQuery, Encoding.UTF8, "application/json"));
 
             //await Task.Delay(1000);
 
+            var json = await message.Content.ReadAsStringAsync();
 
-            var json = message.Content.ReadAsStringAsync();
-            string shit = "";
-            var json1 = JsonConvert.SerializeObject(json).ToString();
-            var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json1);
+            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseDatacs>();
 
-            var result = dict["Result"].Trim('"', '"').Trim('[', ']');
-            var dict2 = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
+            //string shit = "";
+            //var json1 = JsonConvert.SerializeObject(json).ToString();
+            //var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json1);
 
-            foreach (var kv in dict2)
-            {
-                shit += kv;
-            }
+            //var result = dict["Result"].Trim('"', '"').Trim('[', ']');
+            //var dict2 = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
+
+            //foreach (var kv in dict2)
+            //{
+            //    shit += kv;
+            //}
 
             //string whole = result + shit;
 
-            return new string[] { shit };
+            return new string[] { JsonConvert.SerializeObject(topIntent).ToString() };
 
         }
-        
 
         /// <summary>
         /// A method to get the data from LUIS.ai
@@ -122,71 +132,102 @@ namespace WebAPITest.Controllers
         /// <returns>A JSON Object with data to make the query to send</returns>
         // GET: api/Call/5
         //[HttpGet("{id}", Name = "Get")]
-        public async Task<IEnumerable<string>> GetFromLuisAsync(string incomingStr)
+        //[HttpGet]
+        public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
-            // YOUR-KEY: for example, the starter key
+
+            utterance = "what is the actual remaining work of order 8383 part 1? ";
+
             var key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
-            // YOUR-ENDPOINT: example is westus2.api.cognitive.microsoft.com
-            var endpoint = "https://westus.api.cognitive.microsoft.com/luis/api/v2.0";
+            var endpoint = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps";
 
-            // //public sample app
             var appId = "01784b20-3799-4171-881c-f42609e2d4aa";
-
-            var utterance = incomingStr;
 
             var result = await MakeRequest(key, endpoint, appId, utterance);
 
-            return new string[] { result.ToString() };
+            var ents = JObject.Parse(result.ElementAt(0)).SelectToken("entities");
+            var q = JObject.Parse(result.ElementAt(0)).SelectToken("query").ToString();
+            var ints = JObject.Parse(result.ElementAt(0)).SelectToken("intents");
+            var topIntent = JObject.Parse(result.ElementAt(0)).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
+            var compEnts = JObject.Parse(result.ElementAt(0)).SelectToken("compositeEntities");
+
+
+            List<Entity> entities = new List<Entity>();
+            List<Intent> intents = new List<Intent>();
+            List<CompositeEntity> compositeEntities = new List<CompositeEntity>();
+
+            foreach (var item in ents)
+            {
+                entities.Add(item.ToObject<Entity>());
+            }
+            foreach (var item in ints)
+            {
+                intents.Add(item.ToObject<Intent>());
+            }
+            //if (compEnts != null)
+            //{
+            foreach (var item in compEnts)
+            {
+                compositeEntities.Add(item.ToObject<CompositeEntity>());
+            }
+            //}
+
+            RootObject wholeData = new RootObject();
+            wholeData.entities = entities;
+            wholeData.intents = intents;
+            wholeData.topScoringIntent = topIntent;
+            wholeData.query = q;
+            wholeData.CompositeEntities = compositeEntities;
+
+            return new RootObject[] { wholeData };
         }
-
-
-
         static async Task<IEnumerable<string>> MakeRequest(string key, string endpoint, string appId, string utterance)
         {
             var client = new HttpClient();
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
 
-            // The request header contains your subscription key
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
+            var endpointUri = String.Format("{0}/{1}?verbose=true&timezoneOffset=0&subscription-key={2}&q={3}", endpoint, appId, key, utterance);
 
-            // The "q" parameter contains the utterance to send to LUIS
-            queryString["query"] = utterance;
-
-            // These optional request parameters are set to their default values
-            queryString["verbose"] = "true";
-            queryString["show-all-intents"] = "true";
-            queryString["staging"] = "true";
-            queryString["timezoneOffset"] = "0";
-
-            var endpointUri = String.Format("https://{0}/luis/prediction/v3.0/apps/{1}/slots/production/predict?query={2}", endpoint, appId, queryString);
+            //var shity = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/01784b20-3799-4171-881c-f42609e2d4aa?verbose=true&timezoneOffset=0&subscription-key=5685e7ac3ed241dc9d03f4d5ed712420&q=\"what is the quality of part 5 machine m124235?\"";
 
             var response = await client.GetAsync(endpointUri);
 
             var strResponseContent = await response.Content.ReadAsStringAsync();
 
-            // Return the JSON result from LUIS
             return new string[] { strResponseContent.ToString() };
         }
 
-        /// <summary>
-        /// Process the final string and output it in the WPF
-        /// </summary>
-        /// <param name="data"></param>
-        public async Task<string> ProcessFinalStringAsync(string[] data)
+        ///// <summary>
+        ///// Process the final string and output it in the WPF
+        ///// </summary>
+        ///// <param name="data"></param>
+        [HttpGet]
+        public async Task<IEnumerable<string>> ProcessFinalStringAsync(string query)
         {
-            await this.GetFromApiAsync(string.Empty);
+            query = "";//to come from the wpf
 
-            string result = "";
+            var data = (await this.GetFromLuisAsync(query)).ElementAt(0);
 
-            if (data.ToString() == "Error")
+            var response = await this.GetFromApiAsync(data);
+
+            if (response.ToString() == "Error")
             {
-                return "ErrorMessage";
-                //TODO
-                //Needs to return a proper error message
+                return new string[]
+                {
+                    "I could not figure out the meaning of your query or something is wrong with the data u are trying to access. If you are trying to access a machine, please make sure it's ID starts with a capital M. Please try again with a valid query."
+                };
+            }
+            if (response.ToString() == "ErrorWithPart")
+            {
+                return new string[]
+                {
+                    "This entity does not require part parameter."
+                };
             }
 
-            return result;
+            //TODO proccess the final string to return to the wpf, meaning the plain text to return
+
+            return new string[] { response.ToString() };
         }
 
 

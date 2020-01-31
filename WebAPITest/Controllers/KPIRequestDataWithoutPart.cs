@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace WebAPITest.Controllers
 {
-    public class MachineRequestData
+    public class KPIRequestDataWithoutPart
     {
-        public string sensorID;
-        public string type;
+        public string workOrder;
+        public string kpiType;
     }
 }

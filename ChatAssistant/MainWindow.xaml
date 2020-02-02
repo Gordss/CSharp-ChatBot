@@ -1,0 +1,53 @@
+﻿<Window x:Class="ChatAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChatAssistant.MessageBox"
+        xmlns:localTextBox="clr-namespace:ChatAssistant"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Assistant" Height="450" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Background="#95a5a6" FocusManager.FocusedElement="{Binding ElementName=InputField}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+        <!-- CHAT-->
+        <local:ChatMessageListControl x:Name="MessageContainer"/>
+
+        <!--Input panel-->
+        <Border Grid.Row="1" Background="#27ae60" VerticalAlignment="Bottom">
+            <Grid MinHeight="50">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+
+                <localTextBox:InputBox x:Name="InputField"
+                         Background="Transparent"
+                         Grid.Column="0"
+                         Text=""
+                         MaxHeight="80"
+                         FontSize="14"
+                         VerticalAlignment="Center"
+                         TextWrapping="Wrap"
+                         Margin="5"
+                         AcceptsTab="True"
+                         VerticalScrollBarVisibility="Auto"
+                         TextSubmitted="InputBox_TextSubmitted"
+                         />
+
+                <Button x:Name="SendButton"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                        Margin="15,0"
+                        Click="SendButton_Click">
+                    <materialDesign:PackIcon Kind ="Send" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -8123,23 +8123,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Acer\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "C:\\Users\\lachezardl\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
+      "projectUniqueName": "D:\\Files\\Libraries\\Desktop\\C# Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
       "projectName": "WebAPITest",
-      "projectPath": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
-      "packagesPath": "C:\\Users\\Acer\\.nuget\\packages\\",
-      "outputPath": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\obj\\",
+      "projectPath": "D:\\Files\\Libraries\\Desktop\\C# Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
+      "packagesPath": "C:\\Users\\lachezardl\\.nuget\\packages\\",
+      "outputPath": "D:\\Files\\Libraries\\Desktop\\C# Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Acer\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\lachezardl\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -8192,24 +8188,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[3.0.1, 3.0.1]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[3.0.2, 3.0.2]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[3.0.0, 3.0.0]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[3.0.0, 3.0.0]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -8218,7 +8196,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

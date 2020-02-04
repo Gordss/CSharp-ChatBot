@@ -7,9 +7,15 @@ namespace WebAPITest.Controllers
 {
     public class KPIRequestData
     {
-        //public KPIRequestData(string _workOrder,string _kpiType,string _part = "1"):WorkOrder(_workOrder),
+        #region DataMembers
         public string workOrder;
         public string kpiType;
-        public string part ;
+        public string part;
+        #endregion
+
+        #region Property
+
+        #endregion
+
     }
 }

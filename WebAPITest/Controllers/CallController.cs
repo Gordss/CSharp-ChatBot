@@ -85,8 +85,8 @@ namespace WebAPITest.Controllers
                     }
 
                     //KPIRequestData currentObj1 = new KPIRequestData();
-                    //currentObj1.kpiType = "OTD";
-                    //currentObj1.workOrder = "8383";
+                    currentObj1.kpiType = "OTD";
+                    currentObj1.workOrder = "8383";
                     //currentObj1.part = "1";
 
                     actualQuery = JsonConvert.SerializeObject(currentObj1);
@@ -105,7 +105,7 @@ namespace WebAPITest.Controllers
 
             var json = await message.Content.ReadAsStringAsync();
 
-            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseDatacs>();
+            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseData>();
 
             //string shit = "";
             //var json1 = JsonConvert.SerializeObject(json).ToString();
@@ -136,7 +136,7 @@ namespace WebAPITest.Controllers
         public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
 
-            utterance = "what is the actual remaining work of order 8383 part 1? ";
+            utterance = "what is the oee.performance of M186? ";
 
             var key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
@@ -165,13 +165,13 @@ namespace WebAPITest.Controllers
             {
                 intents.Add(item.ToObject<Intent>());
             }
-            //if (compEnts != null)
-            //{
+            if (compEnts != null)
+            {
             foreach (var item in compEnts)
             {
                 compositeEntities.Add(item.ToObject<CompositeEntity>());
             }
-            //}
+            }
 
             RootObject wholeData = new RootObject();
             wholeData.entities = entities;

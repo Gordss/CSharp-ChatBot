@@ -37,10 +37,33 @@ namespace WebAPITest.Controllers
 
         public string KpiType
         {
-            get => kpiType;
+            get
+            {
+                return kpiType;
+            }
             set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException();
+                }
+                else
+                {
+                    bool found = false;
 
+                    foreach (string type in KpiTypes.types)
+                    {
+                        if (type == value)
+                        {
+                            found = true;
+                        }
+                    }
+
+                    if (found == false)
+                    {
+                        throw new ArgumentException();
+                    }
+                }
             }
         }
 

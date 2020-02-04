@@ -69,6 +69,8 @@ namespace WebAPITest.Controllers
                     {
                         throw new ArgumentException();
                     }
+
+                    kpiType = value;
                 }
             }
         }

@@ -49,9 +49,56 @@ namespace WebAPITest.Controllers
             }
             set
             {
+                if(value == null)
+                {
+                    throw new ArgumentNullException();
+                }
+                else
+                {
+                    bool found = false;
 
+                    foreach (string type in KpiTypes.types)
+                    {
+                        if(type == value)
+                        {
+                            found = true;
+                        }
+                    }
+
+                    if (found == false)
+                    {
+                        throw new ArgumentException();
+                    }
+                }
             }
         }
+
+        public string Part
+        {
+            get
+            {
+                return part;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException();
+                }
+                else
+                {
+                    foreach (char symbol in value)
+                    {
+                        if (symbol < '0' || symbol > '9')
+                        {
+                            throw new ArgumentException();
+                        }
+                    }
+                    part = value;
+                }
+            }
+        }
+        
         #endregion
     }
 }

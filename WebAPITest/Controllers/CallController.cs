@@ -53,8 +53,8 @@ namespace WebAPITest.Controllers
                     KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
                     //currentObj1.kpiType = dataInJSON1.Find(e => e.type == "kpiType").entity;
                     int buf;
-                    currentObj1.kpiType = processedIntent.intent;
-                    currentObj1.workOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
+                    currentObj1.KpiType = processedIntent.intent;
+                    currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
 
                     //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
                     //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
@@ -85,8 +85,8 @@ namespace WebAPITest.Controllers
                     }
 
                     //KPIRequestData currentObj1 = new KPIRequestData();
-                    currentObj1.kpiType = "OTD";
-                    currentObj1.workOrder = "8383";
+                    currentObj1.KpiType = "OTD";
+                    currentObj1.WorkOrder = "8383";
                     //currentObj1.part = "1";
 
                     actualQuery = JsonConvert.SerializeObject(currentObj1);

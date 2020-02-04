@@ -10,8 +10,10 @@ namespace WebAPITest.Controllers
 
         #region DataMembers
         private string workOrder;
-        private string kpiType; 
+        private string kpiType;
         #endregion
+
+        #region Properties
 
         public string WorkOrder
         {
@@ -68,6 +70,6 @@ namespace WebAPITest.Controllers
                 }
             }
         }
-
+        #endregion
     }
 }

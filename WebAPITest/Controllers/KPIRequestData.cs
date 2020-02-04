@@ -16,7 +16,7 @@ namespace WebAPITest.Controllers
         private string part;
         #endregion
 
-        #region Property
+        #region Properties
         public string WorkOrder
         {
             get => workOrder;

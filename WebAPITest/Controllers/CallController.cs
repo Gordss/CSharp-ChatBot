@@ -43,8 +43,8 @@ namespace WebAPITest.Controllers
                     url += "Machine/Last";
                     var dataInJSON3 = data.entities;
                     MachineRequestData currentObj3 = new MachineRequestData();
-                    currentObj3.sensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
-                    currentObj3.type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
+                    currentObj3.SensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
+                    currentObj3.Type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
                     actualQuery = JsonConvert.SerializeObject(currentObj3);
                     break;
                 default:
@@ -78,7 +78,7 @@ namespace WebAPITest.Controllers
                         {
                             var serializedParent = JsonConvert.SerializeObject(currentObj1);
                             KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
-                            child.part = temp;
+                            child.Part = temp;
                             actualQuery = JsonConvert.SerializeObject(child);
                             break;
                         }

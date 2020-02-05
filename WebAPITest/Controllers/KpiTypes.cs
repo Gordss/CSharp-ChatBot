@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace WebAPITest.Controllers
 {
-    public static class KpiTypes
+    public class KpiTypes
     {
         #region DataMembers
-        public static List<string> types = new List<string>
-        {
+        public static readonly string[] types = {
             "OrderActualRemainigWork",
             "OrderEstimatedRemainigWork",
             "OrderRemainingWorkDeviation",
@@ -19,7 +18,7 @@ namespace WebAPITest.Controllers
             "PartEstimatedRemainigWork",
             "PercentScrapPartsPerOrder",
             "OTD"
-        };
+       };
         #endregion
     }
 }

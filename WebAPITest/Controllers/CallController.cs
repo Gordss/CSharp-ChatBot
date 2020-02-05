@@ -21,16 +21,16 @@ namespace WebAPITest.Controllers
         //GET: api/Call
 
         /// <summary>
-        /// Get the data from the ICB API
+        /// Gets JSON (responce from LUIS) sends the data to the ICB API
         /// </summary>
         /// <returns>A JSON object with data</returns>
         //[HttpGet]
-        public async Task<IEnumerable<string>> GetFromApiAsync(RootObject data)
+        public async Task<ResponseData> GetFromApiAsync(RootObject data)
         {
 
             HttpClient client = new HttpClient();
 
-            var processedIntent = data.topScoringIntent;
+            TopScoringIntent processedIntent = data.topScoringIntent;
 
             string actualQuery = string.Empty;
             string url = "https://i4sbprod-apimanagement.azure-api.net/analysis/";
@@ -38,10 +38,10 @@ namespace WebAPITest.Controllers
             switch (processedIntent.intent)//compose the query
             {
                 case "None":
-                    return new string[] { "Error" };
+                    return new ResponseData();
                 case "MachineRequestData":
                     url += "Machine/Last";
-                    var dataInJSON3 = data.entities;
+                    List<Entity> dataInJSON3 = data.entities;
                     MachineRequestData currentObj3 = new MachineRequestData();
                     currentObj3.SensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
                     currentObj3.Type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
@@ -49,9 +49,8 @@ namespace WebAPITest.Controllers
                     break;
                 default:
                     url += "KPI/Last";
-                    var dataInJSON1 = data.entities;
+                    List<Entity> dataInJSON1 = data.entities;
                     KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
-                    //currentObj1.kpiType = dataInJSON1.Find(e => e.type == "kpiType").entity;
                     int buf;
                     currentObj1.KpiType = processedIntent.intent;
                     currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
@@ -73,20 +72,25 @@ namespace WebAPITest.Controllers
                         processedIntent.intent != "OrderActualRemainigWork")
                     {
 
-                        var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
-                        if (temp != null)
+                        string kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf) )).value;
+                        if (kpiOrderPart != null)
                         {
-                            var serializedParent = JsonConvert.SerializeObject(currentObj1);
+                            string serializedParent = JsonConvert.SerializeObject(currentObj1);
                             KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
-                            child.Part = temp;
+                            child.Part = kpiOrderPart;
                             actualQuery = JsonConvert.SerializeObject(child);
                             break;
+                        }
+                        else
+                        {
+                            //couldn't find part value
+                            throw new NullReferenceException();
                         }
                     }
 
                     //KPIRequestData currentObj1 = new KPIRequestData();
-                    currentObj1.KpiType = "OTD";
-                    currentObj1.WorkOrder = "8383";
+                    //currentObj1.KpiType = "OTD";
+                    //currentObj1.WorkOrder = "8383";
                     //currentObj1.part = "1";
 
                     actualQuery = JsonConvert.SerializeObject(currentObj1);
@@ -121,14 +125,13 @@ namespace WebAPITest.Controllers
 
             //string whole = result + shit;
 
-            return new string[] { JsonConvert.SerializeObject(topIntent).ToString() };
-
+            return topIntent;
         }
 
         /// <summary>
-        /// A method to get the data from LUIS.ai
+        /// Gets message from WPF and sends data to LUIS.ai and return json object
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="utterance">the WPF user message</param>
         /// <returns>A JSON Object with data to make the query to send</returns>
         // GET: api/Call/5
         //[HttpGet("{id}", Name = "Get")]
@@ -136,21 +139,21 @@ namespace WebAPITest.Controllers
         public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
 
-            utterance = "what is the oee.performance of M186? ";
+            utterance = "what is the otd for order 8383 in part 1? ";
 
-            var key = "5685e7ac3ed241dc9d03f4d5ed712420";
+            string key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
-            var endpoint = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps";
+            string endpoint = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps";
 
-            var appId = "01784b20-3799-4171-881c-f42609e2d4aa";
+            string LUISAppID = "01784b20-3799-4171-881c-f42609e2d4aa";
 
-            var result = await MakeRequest(key, endpoint, appId, utterance);
+            IEnumerable<string> luisResponce = await MakeRequest(key, endpoint, LUISAppID, utterance);
 
-            var ents = JObject.Parse(result.ElementAt(0)).SelectToken("entities");
-            var q = JObject.Parse(result.ElementAt(0)).SelectToken("query").ToString();
-            var ints = JObject.Parse(result.ElementAt(0)).SelectToken("intents");
-            var topIntent = JObject.Parse(result.ElementAt(0)).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
-            var compEnts = JObject.Parse(result.ElementAt(0)).SelectToken("compositeEntities");
+            JToken ents = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("entities");
+            string q = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("query").ToString();
+            JToken ints = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("intents");
+            TopScoringIntent topIntent = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
+            JToken compEnts = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("compositeEntities");
 
 
             List<Entity> entities = new List<Entity>();
@@ -167,28 +170,30 @@ namespace WebAPITest.Controllers
             }
             if (compEnts != null)
             {
-            foreach (var item in compEnts)
-            {
-                compositeEntities.Add(item.ToObject<CompositeEntity>());
-            }
+                foreach (var item in compEnts)
+                {
+                    compositeEntities.Add(item.ToObject<CompositeEntity>());
+                }
             }
 
-            RootObject wholeData = new RootObject();
-            wholeData.entities = entities;
-            wholeData.intents = intents;
-            wholeData.topScoringIntent = topIntent;
-            wholeData.query = q;
-            wholeData.CompositeEntities = compositeEntities;
+            RootObject wholeData = new RootObject
+            {
+                entities = entities,
+                intents = intents,
+                topScoringIntent = topIntent,
+                query = q,
+                CompositeEntities = compositeEntities
+            };
 
             return new RootObject[] { wholeData };
         }
+
+
         static async Task<IEnumerable<string>> MakeRequest(string key, string endpoint, string appId, string utterance)
         {
             var client = new HttpClient();
 
             var endpointUri = String.Format("{0}/{1}?verbose=true&timezoneOffset=0&subscription-key={2}&q={3}", endpoint, appId, key, utterance);
-
-            //var shity = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/01784b20-3799-4171-881c-f42609e2d4aa?verbose=true&timezoneOffset=0&subscription-key=5685e7ac3ed241dc9d03f4d5ed712420&q=\"what is the quality of part 5 machine m124235?\"";
 
             var response = await client.GetAsync(endpointUri);
 

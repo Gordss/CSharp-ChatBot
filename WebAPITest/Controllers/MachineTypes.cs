@@ -15,7 +15,7 @@ namespace WebAPITest.Controllers
             "Downtime",
             "DowntimeSummary",
             "StatusSummary",
-            "Oee",
+            "oee",
             "oee.availability",
             "oee.performance",
             "oee.quality"

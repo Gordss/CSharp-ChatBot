@@ -77,7 +77,7 @@ namespace WebAPITest.Controllers
                         throw new ArgumentException();
                     }
 
-                    type = value.ToLower(); 
+                    type = value; 
                 }
             }
         }

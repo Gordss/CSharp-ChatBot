@@ -167,10 +167,10 @@ namespace WebAPITest.Controllers
             }
             if (compEnts != null)
             {
-            foreach (var item in compEnts)
-            {
-                compositeEntities.Add(item.ToObject<CompositeEntity>());
-            }
+                foreach (var item in compEnts)
+                {
+                    compositeEntities.Add(item.ToObject<CompositeEntity>());
+                }
             }
 
             RootObject wholeData = new RootObject();
@@ -202,34 +202,62 @@ namespace WebAPITest.Controllers
         ///// </summary>
         ///// <param name="data"></param>
         [HttpGet]
-        public async Task<IEnumerable<string>> ProcessFinalStringAsync(string query)
+        public async Task<string> ProcessFinalStringAsync(string query)
         {
             query = "";//to come from the wpf
 
             var data = (await this.GetFromLuisAsync(query)).ElementAt(0);
 
-            var response = await this.GetFromApiAsync(data);
+            var response = await this.GetFromApiAsync(data); 
 
             if (response.ToString() == "Error")
             {
-                return new string[]
-                {
-                    "I could not figure out the meaning of your query or something is wrong with the data u are trying to access. If you are trying to access a machine, please make sure it's ID starts with a capital M. Please try again with a valid query."
-                };
+                return new string
+                (
+                "I could not figure out the meaning of your query or something is wrong with the data u are trying to access. If you are trying to access a machine, please make sure it's ID starts with a capital M. Please try again with a valid query."
+                );
             }
             if (response.ToString() == "ErrorWithPart")
             {
-                return new string[]
-                {
+                return new string
+                (
                     "This entity does not require part parameter."
-                };
+                );
             }
 
             //TODO proccess the final string to return to the wpf, meaning the plain text to return
 
-            return new string[] { response.ToString() };
+            //string[] resp = {
+            //                "ScrapPercentage",
+            //                "M123",
+            //                "12"
+            //                };
+
+            string[] resp = {
+                            "OTD",
+                            "8383",
+                            "12",
+                            "33"
+                            };
+
+            string result = ("The " + resp[0] + " of ");
+
+            if (resp[1][0] == 'M')
+            {
+                result += "machine " + resp[1];
+            }
+            else
+            {
+                result += "order " + resp[1];
+                if (resp.Length == 4)
+                {
+                    result += " of part " + resp[3];
+                }
+            }
+
+            result += " is: " + resp[2];
+
+            return new string(result);
         }
-
-
     }
 }

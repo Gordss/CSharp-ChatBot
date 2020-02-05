@@ -38,7 +38,7 @@ namespace WebAPITest.Controllers
             switch (processedIntent.intent)//compose the query
             {
                 case "None":
-                    return new ResponseData();
+                    throw new Exception("Please paraphrase your question, couldn't understand what you meant!");
                 case "MachineRequestData":
                     url += "Machine/Last";
                     List<Entity> dataInJSON3 = data.entities;
@@ -84,7 +84,7 @@ namespace WebAPITest.Controllers
                         else
                         {
                             //couldn't find part value
-                            throw new NullReferenceException();
+                            throw new NullReferenceException("Couldn't find part value");
                         }
                     }
 
@@ -211,10 +211,28 @@ namespace WebAPITest.Controllers
         {
             query = "";//to come from the wpf
 
-            var data = (await this.GetFromLuisAsync(query)).ElementAt(0);
+            RootObject data;
 
-            var response = await this.GetFromApiAsync(data); 
+            try
+            {
+                data = (await this.GetFromLuisAsync(query)).ElementAt(0);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
 
+            ResponseData response; 
+
+            try
+            {
+                response = await this.GetFromApiAsync(data);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+            /*
             if (response.ToString() == "Error")
             {
                 return new string
@@ -229,8 +247,7 @@ namespace WebAPITest.Controllers
                     "This entity does not require part parameter."
                 );
             }
-
-            //TODO proccess the final string to return to the wpf, meaning the plain text to return
+            */
 
             //string[] resp = {
             //                "ScrapPercentage",
@@ -260,7 +277,7 @@ namespace WebAPITest.Controllers
                 }
             }
 
-            result += " is: " + resp[2];
+            result += " is " + resp[2];
 
             return new string(result);
         }

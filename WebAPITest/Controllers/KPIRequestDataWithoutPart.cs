@@ -21,14 +21,14 @@ namespace WebAPITest.Controllers
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Couldn't initialize workOrderID!");
                 else
                 {
                     foreach (char symbol in value)
                     {
                         if(symbol < '0' || symbol > '9')
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException("WorkOrderID isn't a number!");
                         }
                     }
 
@@ -47,7 +47,7 @@ namespace WebAPITest.Controllers
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Couldn't initialize kpiType!");
                 }
                 else
                 {
@@ -63,7 +63,7 @@ namespace WebAPITest.Controllers
 
                     if (found == false)
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException("Couldn't initialize kpiType(type is not existing)");
                     }
 
                     kpiType = value;

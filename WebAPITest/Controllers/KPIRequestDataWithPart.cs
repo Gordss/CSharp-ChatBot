@@ -22,7 +22,7 @@ namespace WebAPITest.Controllers
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Couldn't initialize workOrderID!");
                 }
                 else
                 {
@@ -30,7 +30,7 @@ namespace WebAPITest.Controllers
                     {
                         if (symbol < '0' || symbol > '9')
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException("WorkOrderID isn't a number!");
                         }
                     }
                     workOrder = value;
@@ -48,7 +48,7 @@ namespace WebAPITest.Controllers
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Couldn't initialize kpiType!");
                 }
                 else
                 {
@@ -64,7 +64,7 @@ namespace WebAPITest.Controllers
 
                     if (found == false)
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException("Couldn't initialize kpiType(type is not existing)");
                     }
 
                     kpiType = value;
@@ -82,7 +82,7 @@ namespace WebAPITest.Controllers
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Part is null!");
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace WebAPITest.Controllers
                     {
                         if (symbol < '0' || symbol > '9')
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException("Part is not a number!");
                         }
                     }
                     part = value;

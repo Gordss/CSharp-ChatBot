@@ -26,13 +26,13 @@ namespace WebAPITest.Controllers
             {
                 if(value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("SensorID is null!");
                 }
                 else
                 {
                     if (value[0] != 'M' && value[0] != 'm')
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException("SensorID should begin with 'm'!");
                     }
                     else
                     {
@@ -40,7 +40,7 @@ namespace WebAPITest.Controllers
                         {
                             if (value[i] < '0' || value[i] > '9')
                             {
-                                throw new ArgumentException();
+                                throw new ArgumentException("SensorID is not a number!");
                             }
                         }
                         sensorID = 'M' + value.Substring(1);
@@ -59,7 +59,7 @@ namespace WebAPITest.Controllers
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException("Machine type is null!");
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace WebAPITest.Controllers
                     }
                     if(found == false)
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException("Machine type isn't existing!");
                     }
 
                     type = value; 

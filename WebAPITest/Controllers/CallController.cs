@@ -90,7 +90,7 @@ namespace WebAPITest.Controllers
         public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
 
-            utterance = "what is the performance of m186? ";
+            //utterance = "what is the performance of m186?";
 
             string key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
@@ -222,10 +222,10 @@ namespace WebAPITest.Controllers
         ///// Process the final string and output it in the WPF
         ///// </summary>
         ///// <param name="data"></param>
-        [HttpGet]
+        [HttpGet("{utterance}", Name = "GetBoza")]
         public async Task<string> ProcessFinalStringAsync(string utterance)
         {
-            utterance = "";//to come from the wpf
+            //utterance = "";//to come from the wpf
 
             RootObject data;
 

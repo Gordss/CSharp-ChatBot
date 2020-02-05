@@ -25,76 +25,22 @@ namespace WebAPITest.Controllers
         /// </summary>
         /// <returns>A JSON object with data</returns>
         //[HttpGet]
-        public async Task<ResponseData> GetFromApiAsync(RootObject data)
+        public async Task<ResponseData> GetFromApiAsync(string actualQuery,string intent)
         {
 
             HttpClient client = new HttpClient();
 
-            TopScoringIntent processedIntent = data.topScoringIntent;
+            //TopScoringIntent processedIntent = data.topScoringIntent;
 
-            string actualQuery = string.Empty;
+            
             string url = "https://i4sbprod-apimanagement.azure-api.net/analysis/";
-
-            switch (processedIntent.intent)//compose the query
+            if (intent == "MachineRequestData")
             {
-                case "None":
-                    throw new Exception("Please paraphrase your question, couldn't understand what you meant!");
-                case "MachineRequestData":
-                    url += "Machine/Last";
-                    List<Entity> dataInJSON3 = data.entities;
-                    MachineRequestData currentObj3 = new MachineRequestData();
-                    currentObj3.SensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
-                    currentObj3.Type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
-                    actualQuery = JsonConvert.SerializeObject(currentObj3);
-                    break;
-                default:
-                    url += "KPI/Last";
-                    List<Entity> dataInJSON1 = data.entities;
-                    KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
-                    int buf;
-                    currentObj1.KpiType = processedIntent.intent;
-                    currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
-
-                    //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
-                    //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
-                    //    processedIntent.intent == "OrderActualRemainigWork")
-                    //{
-                    //    var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
-                    //    if (temp != null)
-                    //    {
-                    //        return new string[] { "ErrorWithPart" };
-                    //    }
-                    //}
-
-
-                    if (processedIntent.intent != "OrderRemainingWorkDeviation" &&
-                        processedIntent.intent != "OrderEstimatedRemainigWork" &&
-                        processedIntent.intent != "OrderActualRemainigWork")
-                    {
-
-                        string kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf) )).value;
-                        if (kpiOrderPart != null)
-                        {
-                            string serializedParent = JsonConvert.SerializeObject(currentObj1);
-                            KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
-                            child.Part = kpiOrderPart;
-                            actualQuery = JsonConvert.SerializeObject(child);
-                            break;
-                        }
-                        else
-                        {
-                            //couldn't find part value
-                            throw new NullReferenceException("Couldn't find part value");
-                        }
-                    }
-
-                    //KPIRequestData currentObj1 = new KPIRequestData();
-                    //currentObj1.KpiType = "OTD";
-                    //currentObj1.WorkOrder = "8383";
-                    //currentObj1.part = "1";
-
-                    actualQuery = JsonConvert.SerializeObject(currentObj1);
-                    break;
+                url += "Machine/Last";
+            }
+            else
+            {
+                url += "KPI/Last";
             }
 
             //actualQuery = "{\"workOrder\":\"8383\",\"kpiType\":\"OTD\",\"part\":\"1\"}";
@@ -108,6 +54,11 @@ namespace WebAPITest.Controllers
             //await Task.Delay(1000);
 
             var json = await message.Content.ReadAsStringAsync();
+
+            if(json == "[]")
+            {
+                throw new Exception("No existing data for the query!");
+            }
 
             var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseData>();
 
@@ -139,7 +90,7 @@ namespace WebAPITest.Controllers
         public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
 
-            utterance = "what is the otd for order 8383 in part 1? ";
+            utterance = "what is the performance of m186? ";
 
             string key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
@@ -168,11 +119,13 @@ namespace WebAPITest.Controllers
             {
                 intents.Add(item.ToObject<Intent>());
             }
-            if (compEnts != null)
+            
+            if (topIntent.intent != "MachineRequestData")
             {
                 foreach (var item in compEnts)
                 {
                     compositeEntities.Add(item.ToObject<CompositeEntity>());
+                    //todo
                 }
             }
 
@@ -188,6 +141,69 @@ namespace WebAPITest.Controllers
             return new RootObject[] { wholeData };
         }
 
+        public string ConstructQueryHelper(RootObject data)
+        {
+            TopScoringIntent processedIntent = data.topScoringIntent;
+            string actualQuery = string.Empty;
+            switch (processedIntent.intent)//compose the query
+            {
+                case "None":
+                    throw new Exception("Please paraphrase your question, couldn't understand what you meant!");
+
+                case "MachineRequestData":
+                    
+                    List<Entity> dataInJSON3 = data.entities;
+                    MachineRequestData currentObj3 = new MachineRequestData();
+                    currentObj3.SensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
+                    currentObj3.Type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
+                    actualQuery = JsonConvert.SerializeObject(currentObj3);
+                    break;
+                default:
+                    //url += "KPI/Last";
+                    List<Entity> dataInJSON1 = data.entities;
+                    KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
+                    int buf;
+                    currentObj1.KpiType = processedIntent.intent;
+                    currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
+
+                    //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
+                    //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
+                    //    processedIntent.intent == "OrderActualRemainigWork")
+                    //{
+                    //    var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
+                    //    if (temp != null)
+                    //    {
+                    //        return new string[] { "ErrorWithPart" };
+                    //    }
+                    //}
+
+
+                    if (processedIntent.intent != "OrderRemainingWorkDeviation" &&
+                        processedIntent.intent != "OrderEstimatedRemainigWork" &&
+                        processedIntent.intent != "OrderActualRemainigWork")
+                    {
+
+                        string kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf))).value;
+                        if (kpiOrderPart != null)
+                        {
+                            string serializedParent = JsonConvert.SerializeObject(currentObj1);
+                            KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
+                            child.Part = kpiOrderPart;
+                            actualQuery = JsonConvert.SerializeObject(child);
+                            break;
+                        }
+                        else
+                        {
+                            //couldn't find part value
+                            throw new NullReferenceException("Couldn't find part value");
+                        }
+                    }
+
+                    actualQuery = JsonConvert.SerializeObject(currentObj1);
+                    break;
+            }
+            return actualQuery;
+        }
 
         static async Task<IEnumerable<string>> MakeRequest(string key, string endpoint, string appId, string utterance)
         {
@@ -207,79 +223,80 @@ namespace WebAPITest.Controllers
         ///// </summary>
         ///// <param name="data"></param>
         [HttpGet]
-        public async Task<string> ProcessFinalStringAsync(string query)
+        public async Task<string> ProcessFinalStringAsync(string utterance)
         {
-            query = "";//to come from the wpf
+            utterance = "";//to come from the wpf
 
             RootObject data;
 
             try
             {
-                data = (await this.GetFromLuisAsync(query)).ElementAt(0);
+                data = (await this.GetFromLuisAsync(utterance)).ElementAt(0);
             }
             catch (Exception ex)
             {
                 return ex.Message;
             }
 
-            ResponseData response; 
+            ResponseData response;
+
+            string query;
 
             try
             {
-                response = await this.GetFromApiAsync(data);
+                query = ConstructQueryHelper(data);
+            }
+            catch (Exception ex)
+            {
+                if(ex is NullReferenceException)
+                {
+                    return "Invalid query!";
+                }    
+                return ex.Message;
+            }
+
+            TopScoringIntent processedIntent = data.topScoringIntent;
+
+            try
+            {
+                response = await this.GetFromApiAsync(query,processedIntent.intent);
             }
             catch (Exception ex)
             {
                 return ex.Message;
             }
-            /*
-            if (response.ToString() == "Error")
+
+            string entity;
+            string entityID;
+            string partNumber = string.Empty;
+            string responseValue = response.value;
+
+            if (processedIntent.intent == "MachineRequestData")
             {
-                return new string
-                (
-                "I could not figure out the meaning of your query or something is wrong with the data u are trying to access. If you are trying to access a machine, please make sure it's ID starts with a capital M. Please try again with a valid query."
-                );
-            }
-            if (response.ToString() == "ErrorWithPart")
-            {
-                return new string
-                (
-                    "This entity does not require part parameter."
-                );
-            }
-            */
-
-            //string[] resp = {
-            //                "ScrapPercentage",
-            //                "M123",
-            //                "12"
-            //                };
-
-            string[] resp = {
-                            "OTD",
-                            "8383",
-                            "12",
-                            "33"
-                            };
-
-            string result = ("The " + resp[0] + " of ");
-
-            if (resp[1][0] == 'M')
-            {
-                result += "machine " + resp[1];
+                var obj = JsonConvert.DeserializeObject<MachineRequestData>(query);
+                entity = obj.Type;
+                entityID = obj.SensorID;
             }
             else
             {
-                result += "order " + resp[1];
-                if (resp.Length == 4)
+                var obj = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(query);
+                entity = obj.KpiType;
+                entityID = obj.WorkOrder;
+
+                if(obj.Part != string.Empty)
                 {
-                    result += " of part " + resp[3];
+                    partNumber = obj.Part;
                 }
+
             }
+            string result = string.Format("The {0} of {1}{2} is {3}.",
+                                          entity,
+                                          entityID,
+                                          (partNumber != string.Empty) ? (" of part " + partNumber) : "",
+                                          responseValue
+                                          );
 
-            result += " is " + resp[2];
-
-            return new string(result);
+            return result;
         }
     }
 }

@@ -80,21 +80,14 @@ namespace WebAPITest.Controllers
             }
             set
             {
-                if (value == null)
+                foreach (char symbol in value)
                 {
-                    throw new ArgumentNullException("Part is null!");
-                }
-                else
-                {
-                    foreach (char symbol in value)
+                    if (symbol < '0' || symbol > '9')
                     {
-                        if (symbol < '0' || symbol > '9')
-                        {
-                            throw new ArgumentException("Part is not a number!");
-                        }
+                        throw new ArgumentException("Part is not a number!");
                     }
-                    part = value;
                 }
+                part = value;
             }
         }
 

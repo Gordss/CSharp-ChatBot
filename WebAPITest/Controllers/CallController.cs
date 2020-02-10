@@ -21,18 +21,15 @@ namespace WebAPITest.Controllers
         //GET: api/Call
 
         /// <summary>
-        /// Gets JSON (responce from LUIS) sends the data to the ICB API
+        /// Gets query as a string (response from LUIS) and intent type then sends the data to the ICB API
         /// </summary>
-        /// <returns>A JSON object with data</returns>
+        /// <returns>ResponceData object</returns>
         //[HttpGet]
         public async Task<ResponseData> GetFromApiAsync(string actualQuery,string intent)
         {
 
             HttpClient client = new HttpClient();
 
-            //TopScoringIntent processedIntent = data.topScoringIntent;
-
-            
             string url = "https://i4sbprod-apimanagement.azure-api.net/analysis/";
             if (intent == "MachineRequestData")
             {
@@ -43,15 +40,8 @@ namespace WebAPITest.Controllers
                 url += "KPI/Last";
             }
 
-            //actualQuery = "{\"workOrder\":\"8383\",\"kpiType\":\"OTD\",\"part\":\"1\"}";
-
-            //actualQuery = actualQuery.Trim('\\').Substring(1,actualQuery.Length-2);
-
-
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "1f0563fd67ca436db10cc4bdef08aeea");
             HttpResponseMessage message = await client.PostAsync(url, new StringContent(actualQuery, Encoding.UTF8, "application/json"));
-
-            //await Task.Delay(1000);
 
             var json = await message.Content.ReadAsStringAsync();
 
@@ -61,20 +51,6 @@ namespace WebAPITest.Controllers
             }
 
             var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseData>();
-
-            //string shit = "";
-            //var json1 = JsonConvert.SerializeObject(json).ToString();
-            //var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json1);
-
-            //var result = dict["Result"].Trim('"', '"').Trim('[', ']');
-            //var dict2 = JsonConvert.DeserializeObject<Dictionary<string, string>>(result);
-
-            //foreach (var kv in dict2)
-            //{
-            //    shit += kv;
-            //}
-
-            //string whole = result + shit;
 
             return topIntent;
         }
@@ -89,8 +65,6 @@ namespace WebAPITest.Controllers
         //[HttpGet]
         public async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
         {
-
-            //utterance = "what is the performance of m186?";
 
             string key = "5685e7ac3ed241dc9d03f4d5ed712420";
 
@@ -125,7 +99,6 @@ namespace WebAPITest.Controllers
                 foreach (var item in compEnts)
                 {
                     compositeEntities.Add(item.ToObject<CompositeEntity>());
-                    //todo
                 }
             }
 
@@ -141,6 +114,11 @@ namespace WebAPITest.Controllers
             return new RootObject[] { wholeData };
         }
 
+        /// <summary>
+        /// Gets JSON (response data from LUIS) object and returns query as a string
+        /// </summary>
+        /// <param name="data">the response data from LUIS</param>
+        /// <returns></returns>
         public string ConstructQueryHelper(RootObject data)
         {
             TopScoringIntent processedIntent = data.topScoringIntent;
@@ -152,44 +130,36 @@ namespace WebAPITest.Controllers
 
                 case "MachineRequestData":
                     
-                    List<Entity> dataInJSON3 = data.entities;
-                    MachineRequestData currentObj3 = new MachineRequestData();
-                    currentObj3.SensorID = dataInJSON3.Find(e => e.type == "MachineID").entity;
-                    currentObj3.Type = dataInJSON3.Find(e => e.type == "MachineRequestType").resolution.values[0];
-                    actualQuery = JsonConvert.SerializeObject(currentObj3);
+                    List<Entity> machineEntities = data.entities;
+                    MachineRequestData machineRequest = new MachineRequestData();
+                    machineRequest.SensorID = machineEntities.Find(e => e.type == "MachineID").entity;
+                    machineRequest.Type = machineEntities.Find(e => e.type == "MachineRequestType").resolution.values[0];
+                    actualQuery = JsonConvert.SerializeObject(machineRequest);
                     break;
                 default:
-                    //url += "KPI/Last";
-                    List<Entity> dataInJSON1 = data.entities;
-                    KPIRequestDataWithoutPart currentObj1 = new KPIRequestDataWithoutPart();
+                    List<Entity> kpiEntities = data.entities;
+                    KPIRequestDataWithoutPart kpiRequestWithoutPart = new KPIRequestDataWithoutPart();
                     int buf;
-                    currentObj1.KpiType = processedIntent.intent;
-                    currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
+                    kpiRequestWithoutPart.KpiType = processedIntent.intent;
+                    kpiRequestWithoutPart.WorkOrder = kpiEntities.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
 
-                    //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
-                    //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
-                    //    processedIntent.intent == "OrderActualRemainigWork")
-                    //{
-                    //    var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;
-                    //    if (temp != null)
-                    //    {
-                    //        return new string[] { "ErrorWithPart" };
-                    //    }
-                    //}
+                    //get part entity
+                    CompositeEntity kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)));
 
-
+                    //filter request types without part
                     if (processedIntent.intent != "OrderRemainingWorkDeviation" &&
                         processedIntent.intent != "OrderEstimatedRemainigWork" &&
-                        processedIntent.intent != "OrderActualRemainigWork")
+                        processedIntent.intent != "OrderActualRemainigWork" &&
+                        kpiOrderPart != null)
                     {
 
-                        string kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf))).value;
+                        string kpiOrderPartValue = kpiOrderPart.value;
                         if (kpiOrderPart != null)
                         {
-                            string serializedParent = JsonConvert.SerializeObject(currentObj1);
-                            KPIRequestDataWithPart child = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedParent);
-                            child.Part = kpiOrderPart;
-                            actualQuery = JsonConvert.SerializeObject(child);
+                            string serializedKPIWithoutPart = JsonConvert.SerializeObject(kpiRequestWithoutPart);
+                            KPIRequestDataWithPart kpiRequestWithPart = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(serializedKPIWithoutPart);
+                            kpiRequestWithPart.Part = kpiOrderPartValue;
+                            actualQuery = JsonConvert.SerializeObject(kpiRequestWithPart);
                             break;
                         }
                         else
@@ -199,7 +169,7 @@ namespace WebAPITest.Controllers
                         }
                     }
 
-                    actualQuery = JsonConvert.SerializeObject(currentObj1);
+                    actualQuery = JsonConvert.SerializeObject(kpiRequestWithoutPart);
                     break;
             }
             return actualQuery;
@@ -218,33 +188,31 @@ namespace WebAPITest.Controllers
             return new string[] { strResponseContent.ToString() };
         }
 
-        ///// <summary>
-        ///// Process the final string and output it in the WPF
-        ///// </summary>
-        ///// <param name="data"></param>
-        [HttpGet("{utterance}", Name = "GetBoza")]
-        public async Task<string> ProcessFinalStringAsync(string utterance)
+        /// <summary>
+        /// Gets user request, sends it to LUIS, gets data from ICB API and returns the final answer
+        /// </summary>
+        /// <param name="userRequestMessage">user message</param>
+        // <returns>API message</returns>
+        [HttpGet("{userRequestMessage}", Name = "GetAnswer")]
+        public async Task<string> ProcessFinalStringAsync(string userRequestMessage)
         {
-            //utterance = "";//to come from the wpf
 
-            RootObject data;
+            RootObject luisResponceData;
 
             try
             {
-                data = (await this.GetFromLuisAsync(utterance)).ElementAt(0);
+                luisResponceData = (await this.GetFromLuisAsync(userRequestMessage)).ElementAt(0);
             }
             catch (Exception ex)
             {
                 return ex.Message;
             }
 
-            ResponseData response;
-
-            string query;
+            string queryForAPI;
 
             try
             {
-                query = ConstructQueryHelper(data);
+                queryForAPI = ConstructQueryHelper(luisResponceData);
             }
             catch (Exception ex)
             {
@@ -255,11 +223,12 @@ namespace WebAPITest.Controllers
                 return ex.Message;
             }
 
-            TopScoringIntent processedIntent = data.topScoringIntent;
+            TopScoringIntent processedIntent = luisResponceData.topScoringIntent;
+            ResponseData responseFromAPI;
 
             try
             {
-                response = await this.GetFromApiAsync(query,processedIntent.intent);
+                responseFromAPI = await this.GetFromApiAsync(queryForAPI,processedIntent.intent);
             }
             catch (Exception ex)
             {
@@ -269,23 +238,23 @@ namespace WebAPITest.Controllers
             string entity;
             string entityID;
             string partNumber = string.Empty;
-            string responseValue = response.value;
+            string responseValue = responseFromAPI.value;
 
             if (processedIntent.intent == "MachineRequestData")
             {
-                var obj = JsonConvert.DeserializeObject<MachineRequestData>(query);
-                entity = obj.Type;
-                entityID = obj.SensorID;
+                var machineRequestObj = JsonConvert.DeserializeObject<MachineRequestData>(queryForAPI);
+                entity = machineRequestObj.Type;
+                entityID = machineRequestObj.SensorID;
             }
             else
             {
-                var obj = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(query);
-                entity = obj.KpiType;
-                entityID = obj.WorkOrder;
+                var kpiRequestObj = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(queryForAPI);
+                entity = kpiRequestObj.KpiType;
+                entityID = kpiRequestObj.WorkOrder;
 
-                if(obj.Part != string.Empty)
+                if(kpiRequestObj.Part != string.Empty && kpiRequestObj.Part != null)
                 {
-                    partNumber = obj.Part;
+                    partNumber = kpiRequestObj.Part;
                 }
 
             }

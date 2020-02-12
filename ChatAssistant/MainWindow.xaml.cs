@@ -38,12 +38,16 @@ namespace ChatAssistant
             InputField.Text = string.Empty;
         }
 
-        public async void APICallAsync(string utterance)
+        /// <summary>
+        /// Calls API to get reponse message for the user
+        /// </summary>
+        /// <param name="userRequestMessage">user request</param>
+        public async void APICallAsync(string userRequestMessage)
         {
             HttpClient client = new HttpClient();
             //WebAPITest.Program.Main(new string[] { });
             string url = "https://localhost:44363/api/call/";
-            url += utterance;
+            url += userRequestMessage;
             HttpResponseMessage message = await client.GetAsync(url);
 
             MessageContainer.AddMessage((await message.Content.ReadAsStringAsync()).ToString(), false);

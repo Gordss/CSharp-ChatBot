@@ -8123,23 +8123,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Acer\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "C:\\Users\\lachezardl\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
+      "projectUniqueName": "D:\\Education\\2019-2020_Winter\\02_Selectable\\C#.NET OOP\\05_Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
       "projectName": "WebAPITest",
-      "projectPath": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
-      "packagesPath": "C:\\Users\\Acer\\.nuget\\packages\\",
-      "outputPath": "D:\\FMI\\C#\\ChatBot\\CSharp-ChatBot\\WebAPITest\\obj\\",
+      "projectPath": "D:\\Education\\2019-2020_Winter\\02_Selectable\\C#.NET OOP\\05_Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\WebAPITest.csproj",
+      "packagesPath": "C:\\Users\\lachezardl\\.nuget\\packages\\",
+      "outputPath": "D:\\Education\\2019-2020_Winter\\02_Selectable\\C#.NET OOP\\05_Project\\ChatBot\\CSharp-ChatBot\\WebAPITest\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Acer\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\lachezardl\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

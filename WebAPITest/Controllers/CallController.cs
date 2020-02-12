@@ -167,7 +167,7 @@ namespace WebAPITest.Controllers
                     currentObj1.WorkOrder = dataInJSON1.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
 
                     //if (processedIntent.intent == "OrderRemainingWorkDeviation" ||
-                    //    processedIntent.intent == "OrderEstimatedRemainigWork" ||
+                    //    processedIntent.intent == "OrderEstimatedRemainigWork"  ||
                     //    processedIntent.intent == "OrderActualRemainigWork")
                     //{
                     //    var temp = data.CompositeEntities.Find(e => e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)).value;

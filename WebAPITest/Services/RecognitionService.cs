@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WebAPITest.Models;
-using static WebAPITest.Controllers.Query;
+using static WebAPITest.Models.Query;
 using WebAPITest.Settings;
 
 namespace WebAPITest.Services
@@ -30,7 +30,6 @@ namespace WebAPITest.Services
 
             HttpClient client = new HttpClient();
 
-            //string url = "https://i4sbprod-apimanagement.azure-api.net/analysis/";
             string url = Credentials.API_URL;
             if (intent == "MachineRequestData")
             {
@@ -41,7 +40,6 @@ namespace WebAPITest.Services
                 url += "KPI/Last";
             }
 
-            //client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "1f0563fd67ca436db10cc4bdef08aeea");
             client.DefaultRequestHeaders.Add(Credentials.API_HEADER, Credentials.API_ID);
             HttpResponseMessage message = await client.PostAsync(url, new StringContent(actualQuery, Encoding.UTF8, "application/json"));
 
@@ -65,58 +63,53 @@ namespace WebAPITest.Services
         // GET: api/Call/5
         //[HttpGet("{id}", Name = "Get")]
         //[HttpGet]
-        private async Task<IEnumerable<RootObject>> GetFromLuisAsync(string utterance)
+        private async Task<RootObject> GetFromLuisAsync(string utterance)
         {
 
-            //string key = "5685e7ac3ed241dc9d03f4d5ed712420";
             string key = Credentials.LUIS_KEY;
-
-            //string endpoint = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps";
             string endpoint = Credentials.LUIS_URL;
-
-            //string LUISAppID = "01784b20-3799-4171-881c-f42609e2d4aa";
             string LUISAppID = Credentials.LUIS_ID;
 
-            IEnumerable<string> luisResponce = await MakeRequest(key, endpoint, LUISAppID, utterance);
+            string luisResponse = await MakeRequest(key, endpoint, LUISAppID, utterance);
 
-            JToken ents = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("entities");
-            string q = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("query").ToString();
-            JToken ints = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("intents");
-            TopScoringIntent topIntent = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
-            JToken compEnts = JObject.Parse(luisResponce.ElementAt(0)).SelectToken("compositeEntities");
+            //JToken ents =                JObject.Parse(luisResponse).SelectToken("entities");
+            //string q =                   JObject.Parse(luisResponse).SelectToken("query").ToString();
+            //JToken ints =                JObject.Parse(luisResponse).SelectToken("intents");
+            //TopScoringIntent topIntent = JObject.Parse(luisResponse).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
+            //JToken compEnts =            JObject.Parse(luisResponse).SelectToken("compositeEntities");
+
+            LuisResponse response = JsonConvert.DeserializeObject<LuisResponse>(luisResponse);
 
 
             List<Entity> entities = new List<Entity>();
             List<Intent> intents = new List<Intent>();
             List<CompositeEntity> compositeEntities = new List<CompositeEntity>();
 
-            foreach (var item in ents)
+            foreach (var entity in response.Entities)
             {
-                entities.Add(item.ToObject<Entity>());
+                entities.Add(entity);
             }
-            foreach (var item in ints)
+            foreach (var intent in response.Intents)
             {
-                intents.Add(item.ToObject<Intent>());
+                intents.Add(intent);
             }
 
-            if (topIntent.intent != "MachineRequestData")
+            if (response.TopScoringIntent.Intent != "MachineRequestData")
             {
-                foreach (var item in compEnts)
+                foreach (var compositeEntity in response.CompositeEntities)
                 {
-                    compositeEntities.Add(item.ToObject<CompositeEntity>());
+                    compositeEntities.Add(compositeEntity);
                 }
             }
 
-            RootObject wholeData = new RootObject
-            {
-                entities = entities,
-                intents = intents,
-                topScoringIntent = topIntent,
-                query = q,
-                CompositeEntities = compositeEntities
-            };
+            RootObject wholeData = new RootObject(
+                                    entities,
+                                    intents,
+                                    response.TopScoringIntent,
+                                    response.Query,
+                                    compositeEntities );
 
-            return new RootObject[] { wholeData };
+            return wholeData;
         }
 
         /// <summary>
@@ -126,39 +119,39 @@ namespace WebAPITest.Services
         /// <returns></returns>
         private string ConstructQueryHelper(RootObject data)
         {
-            TopScoringIntent processedIntent = data.topScoringIntent;
+            TopScoringIntent processedIntent = data.TopScoringIntent;
             string actualQuery = string.Empty;
-            switch (processedIntent.intent)//compose the query
+            switch (processedIntent.Intent)//compose the query
             {
                 case "None":
                     throw new Exception("Please paraphrase your question, couldn't understand what you meant!");
 
                 case "MachineRequestData":
 
-                    List<Entity> machineEntities = data.entities;
+                    List<Entity> machineEntities = data.Entities;
                     MachineRequestData machineRequest = new MachineRequestData();
-                    machineRequest.SensorID = machineEntities.Find(e => e.type == "MachineID").entity;
-                    machineRequest.Type = machineEntities.Find(e => e.type == "MachineRequestType").resolution.values[0];
+                    machineRequest.SensorID = machineEntities.Find(e => e.Type == "MachineID").entity;
+                    machineRequest.Type = machineEntities.Find(e => e.Type == "MachineRequestType").resolution.Value[0];
                     actualQuery = JsonConvert.SerializeObject(machineRequest);
                     break;
                 default:
-                    List<Entity> kpiEntities = data.entities;
+                    List<Entity> kpiEntities = data.Entities;
                     KPIRequestDataWithoutPart kpiRequestWithoutPart = new KPIRequestDataWithoutPart();
                     int buf;
-                    kpiRequestWithoutPart.KpiType = processedIntent.intent;
-                    kpiRequestWithoutPart.WorkOrder = kpiEntities.Find(e => e.type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
+                    kpiRequestWithoutPart.KpiType = processedIntent.Intent;
+                    kpiRequestWithoutPart.WorkOrder = kpiEntities.Find(e => e.Type == "KPIworkOrderID" && int.TryParse(e.entity, out buf)).entity;
 
                     //get part entity
-                    CompositeEntity kpiOrderPart = data.CompositeEntities.Find(e => (e.parentType == "KPIrequestDataPart" && int.TryParse(e.value, out buf)));
+                    CompositeEntity kpiOrderPart = data.CompositeEntities.Find(e => (e.ParentType == "KPIrequestDataPart" && int.TryParse(e.Value, out buf)));
 
                     //filter request types without part
-                    if (processedIntent.intent != "OrderRemainingWorkDeviation" &&
-                        processedIntent.intent != "OrderEstimatedRemainigWork" &&
-                        processedIntent.intent != "OrderActualRemainigWork" &&
+                    if (processedIntent.Intent != "OrderRemainingWorkDeviation" &&
+                        processedIntent.Intent != "OrderEstimatedRemainigWork" &&
+                        processedIntent.Intent != "OrderActualRemainigWork" &&
                         kpiOrderPart != null)
                     {
 
-                        string kpiOrderPartValue = kpiOrderPart.value;
+                        string kpiOrderPartValue = kpiOrderPart.Value;
                         if (kpiOrderPart != null)
                         {
                             string serializedKPIWithoutPart = JsonConvert.SerializeObject(kpiRequestWithoutPart);
@@ -180,7 +173,7 @@ namespace WebAPITest.Services
             return actualQuery;
         }
 
-        private static async Task<IEnumerable<string>> MakeRequest(string key, string endpoint, string appId, string utterance)
+        private async Task<string> MakeRequest(string key, string endpoint, string appId, string utterance)
         {
             var client = new HttpClient();
 
@@ -190,7 +183,7 @@ namespace WebAPITest.Services
 
             var strResponseContent = await response.Content.ReadAsStringAsync();
 
-            return new string[] { strResponseContent.ToString() };
+            return strResponseContent;
         }
 
         /// <summary>
@@ -205,7 +198,7 @@ namespace WebAPITest.Services
 
             try
             {
-                luisResponseData = (await this.GetFromLuisAsync(userRequestMessage)).ElementAt(0);
+                luisResponseData = (await this.GetFromLuisAsync(userRequestMessage));
             }
             catch (Exception ex)
             {
@@ -227,12 +220,12 @@ namespace WebAPITest.Services
                 return ex.Message;
             }
 
-            TopScoringIntent processedIntent = luisResponseData.topScoringIntent;
+            TopScoringIntent processedIntent = luisResponseData.TopScoringIntent;
             ResponseData responseFromAPI;
 
             try
             {
-                responseFromAPI = await this.GetFromApiAsync(queryForAPI, processedIntent.intent);
+                responseFromAPI = await this.GetFromApiAsync(queryForAPI, processedIntent.Intent);
             }
             catch (Exception ex)
             {
@@ -244,7 +237,7 @@ namespace WebAPITest.Services
             string partNumber = string.Empty;
             string responseValue = responseFromAPI.value;
 
-            if (processedIntent.intent == "MachineRequestData")
+            if (processedIntent.Intent == "MachineRequestData")
             {
                 var machineRequestObj = JsonConvert.DeserializeObject<MachineRequestData>(queryForAPI);
                 entity = machineRequestObj.Type;

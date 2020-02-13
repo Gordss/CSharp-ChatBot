@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WebAPITest.Models;
-using static WebAPITest.Controllers.Query;
+using static WebAPITest.Models.Query;
 using WebAPITest.Services;
 
 

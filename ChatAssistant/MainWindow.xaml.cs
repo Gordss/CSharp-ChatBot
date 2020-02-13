@@ -49,6 +49,10 @@ namespace ChatAssistant
             string url = "https://localhost:44363/api/call/";
             url += userRequestMessage;
             HttpResponseMessage message = await client.GetAsync(url);
+            if (!message.IsSuccessStatusCode)
+            {
+                System.Windows.MessageBox.Show($"Request failed with status code {message.StatusCode}");
+            }
 
             MessageContainer.AddMessage((await message.Content.ReadAsStringAsync()).ToString(), false);
         }

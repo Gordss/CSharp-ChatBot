@@ -26,13 +26,13 @@ namespace ChatAssistant.MessageBox.Design
             {
                 new ChatMessageListItem
                 {
-                    Message = "give me the oee.performance of m45",
+                    Message = "give me the performance of m45",
                     TimeStamp = DateTimeOffset.Now,
                     SentByUser = true
                 },
                 new ChatMessageListItem
                 {
-                    Message = "The performance of M45 is 100!",
+                    Message = "The oee.performance of M45 is 100.",
                     TimeStamp = DateTimeOffset.Now,
                     SentByUser = false
                 },

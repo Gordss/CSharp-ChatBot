@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:ChatAssistant.Styles">
+    <Color x:Key="ChatBackground">#000000</Color>
+    <SolidColorBrush x:Key="ChatBackgroundBrush" Color="{StaticResource ChatBackground}" />
+
+    <Color x:Key="ChatInputBoxBackground">#2E8B57</Color>
+    <SolidColorBrush x:Key="ChatInputBoxBackgroundBrush" Color="{StaticResource ChatInputBoxBackground}" />
+
+    <Color x:Key="TextColor">#FFFFFF</Color>
+    <SolidColorBrush x:Key="TextColorBrush" Color="{StaticResource TextColor}" />
+</ResourceDictionary>

@@ -14,15 +14,15 @@ namespace WebAPITest.Models
         #endregion
 
         #region Constructors
-        public MachineRequestData(string _sensorId, string _type)
-        {
-            SensorID = _sensorId;
-            Type = _type;
-        }
+        //public MachineRequestData(string _sensorId, string _type)
+        //{
+        //    SensorID = _sensorId;
+        //    Type = _type;
+        //}
 
-        public MachineRequestData() : this("", "") { }
+        //public MachineRequestData() : this("", "") { }
 
-        public MachineRequestData(MachineRequestData data) : this(data.sensorID, data.type) { } 
+        //public MachineRequestData(MachineRequestData data) : this(data.sensorID, data.type) { } 
         #endregion
 
         #region Properties

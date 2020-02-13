@@ -15,16 +15,16 @@ namespace WebAPITest.Models
 
         #region Constructors
 
-        KPIRequestDataWithPart(string _workOrder, string _kpiType, string _part)
-        {
-            WorkOrder = _workOrder;
-            KpiType = _kpiType;
-            Part = _part;
-        }
+        //public KPIRequestDataWithPart(string _workOrder, string _kpiType, string _part)
+        //{
+        //    WorkOrder = _workOrder;
+        //    KpiType = _kpiType;
+        //    Part = _part;
+        //}
 
-        KPIRequestDataWithPart() : this("", "", "") { }
+        //public KPIRequestDataWithPart() : this("", "", "") { }
 
-        KPIRequestDataWithPart(KPIRequestDataWithPart data) : this(data.WorkOrder, data.KpiType, data.Part) { }
+        //public KPIRequestDataWithPart(KPIRequestDataWithPart data) : this(data.WorkOrder, data.KpiType, data.Part) { }
 
         #endregion
 

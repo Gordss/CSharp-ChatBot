@@ -10,6 +10,5 @@ namespace WebAPITest
         public string value;
         public string details;
         public string utcTimestamp;
-
     }
 }

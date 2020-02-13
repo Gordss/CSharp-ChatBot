@@ -58,7 +58,5 @@ namespace WebAPITest.Controllers
 
             public List<CompositeEntitiesChildren> children { get; set; }
         }
-
-
     }
 }

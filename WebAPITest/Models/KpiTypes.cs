@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WebAPITest.Controllers
+namespace WebAPITest.Models
 {
     public class KpiTypes
     {
         #region DataMembers
+
         public static readonly string[] types = {
             "OrderActualRemainigWork",
             "OrderEstimatedRemainigWork",
@@ -19,6 +20,7 @@ namespace WebAPITest.Controllers
             "PercentScrapPartsPerOrder",
             "OTD"
        };
+
         #endregion
     }
 }

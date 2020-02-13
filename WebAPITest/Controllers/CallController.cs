@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using WebAPITest.Models;
 using static WebAPITest.Controllers.Query;
 
 namespace WebAPITest.Controllers
@@ -197,11 +198,11 @@ namespace WebAPITest.Controllers
         public async Task<string> ProcessFinalStringAsync(string userRequestMessage)
         {
 
-            RootObject luisResponceData;
+            RootObject luisResponseData;
 
             try
             {
-                luisResponceData = (await this.GetFromLuisAsync(userRequestMessage)).ElementAt(0);
+                luisResponseData = (await this.GetFromLuisAsync(userRequestMessage)).ElementAt(0);
             }
             catch (Exception ex)
             {
@@ -212,7 +213,7 @@ namespace WebAPITest.Controllers
 
             try
             {
-                queryForAPI = ConstructQueryHelper(luisResponceData);
+                queryForAPI = ConstructQueryHelper(luisResponseData);
             }
             catch (Exception ex)
             {
@@ -223,7 +224,7 @@ namespace WebAPITest.Controllers
                 return ex.Message;
             }
 
-            TopScoringIntent processedIntent = luisResponceData.topScoringIntent;
+            TopScoringIntent processedIntent = luisResponseData.topScoringIntent;
             ResponseData responseFromAPI;
 
             try

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WebAPITest.Controllers
+namespace WebAPITest.Models
 {
     public static class MachineTypes
     {

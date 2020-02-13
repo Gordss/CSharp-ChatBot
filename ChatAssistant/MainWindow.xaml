@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="Assistant" Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
-    <Grid Background="Black" FocusManager.FocusedElement="{Binding ElementName=InputField}">
+    <Grid Background="{StaticResource ChatBackgroundBrush}" FocusManager.FocusedElement="{Binding ElementName=InputField}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="50" />

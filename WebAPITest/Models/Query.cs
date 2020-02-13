@@ -28,7 +28,7 @@ namespace WebAPITest.Models
 
         public class Resolution
         {
-            public List<string> Value { get; set; }
+            public List<string> values { get; set; }
         }
 
         public class Entity
@@ -52,7 +52,7 @@ namespace WebAPITest.Models
 
         public class LuisResponse
         {
-            public string Query { get; set; }
+            public string MessageQuery { get; set; }
             public TopScoringIntent TopScoringIntent { get; set; }
             public List<Intent> Intents { get; set; }
             public List<Entity> Entities { get; set; }
@@ -63,10 +63,10 @@ namespace WebAPITest.Models
                 Entities = entities;
                 Intents = intents;
                 TopScoringIntent = topScoringIntent;
-                Query = query;
+                MessageQuery = query;
                 CompositeEntities = compositeEntities;
             }
-            public LuisResponse(LuisResponse data) : this(data.Entities, data.Intents, data.TopScoringIntent, data.Query, data.CompositeEntities) { }
+            public LuisResponse(LuisResponse data) : this(data.Entities, data.Intents, data.TopScoringIntent, data.MessageQuery, data.CompositeEntities) { }
             public LuisResponse() : this(new List<Entity>(), new List<Intent>(), new TopScoringIntent(), "", new List<CompositeEntity>()) { }
         }
 

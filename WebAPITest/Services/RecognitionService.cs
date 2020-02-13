@@ -95,7 +95,7 @@ namespace WebAPITest.Services
                     List<Entity> machineEntities = data.Entities;
                     MachineRequestData machineRequest = new MachineRequestData();
                     machineRequest.SensorID = machineEntities.Find(e => e.Type == "MachineID").entity;
-                    machineRequest.Type = machineEntities.Find(e => e.Type == "MachineRequestType").resolution.Value[0];
+                    machineRequest.Type = machineEntities.Find(e => e.Type == "MachineRequestType").resolution.values[0];
                     actualQuery = JsonConvert.SerializeObject(machineRequest);
                     break;
                 default:

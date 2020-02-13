@@ -28,7 +28,7 @@ docs/_site
 .vs/
 WebAPITest/bin/
 WebAPITest/obj/
-WebAPITest/Services/
+WebAPITest/Settings/
 
 [Dd]ebug/
 [Rr]elease/

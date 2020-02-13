@@ -18,8 +18,6 @@ using WebAPITest.Services;
 namespace WebAPITest.Controllers
 {
 
-
-
     [Route("api/[controller]")]
     [ApiController]
     public class CallController : ControllerBase

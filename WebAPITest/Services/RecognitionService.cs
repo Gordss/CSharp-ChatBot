@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WebAPITest.Models;
 using static WebAPITest.Models.Query;
+using static WebAPITest.Models.Query.LuisResponse;
 using WebAPITest.Settings;
 
 namespace WebAPITest.Services
@@ -25,7 +26,7 @@ namespace WebAPITest.Services
         /// </summary>
         /// <returns>ResponceData object</returns>
         //[HttpGet]
-        private async Task<ResponseData> GetFromApiAsync(string actualQuery, string intent)
+        private async Task<KPIApiResponse> GetFromApiAsync(string actualQuery, string intent)
         {
 
             HttpClient client = new HttpClient();
@@ -50,7 +51,7 @@ namespace WebAPITest.Services
                 throw new Exception("No existing data for the query!");
             }
 
-            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<ResponseData>();
+            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<KPIApiResponse>();
 
             return topIntent;
         }
@@ -63,51 +64,14 @@ namespace WebAPITest.Services
         // GET: api/Call/5
         //[HttpGet("{id}", Name = "Get")]
         //[HttpGet]
-        private async Task<RootObject> GetFromLuisAsync(string utterance)
+        private async Task<Query.LuisResponse> GetFromLuisAsync(string utterance)
         {
-
             string key = Credentials.LUIS_KEY;
             string endpoint = Credentials.LUIS_URL;
             string LUISAppID = Credentials.LUIS_ID;
 
             string luisResponse = await MakeRequest(key, endpoint, LUISAppID, utterance);
-
-            //JToken ents =                JObject.Parse(luisResponse).SelectToken("entities");
-            //string q =                   JObject.Parse(luisResponse).SelectToken("query").ToString();
-            //JToken ints =                JObject.Parse(luisResponse).SelectToken("intents");
-            //TopScoringIntent topIntent = JObject.Parse(luisResponse).SelectToken("topScoringIntent").ToObject<TopScoringIntent>();
-            //JToken compEnts =            JObject.Parse(luisResponse).SelectToken("compositeEntities");
-
-            LuisResponse response = JsonConvert.DeserializeObject<LuisResponse>(luisResponse);
-
-
-            List<Entity> entities = new List<Entity>();
-            List<Intent> intents = new List<Intent>();
-            List<CompositeEntity> compositeEntities = new List<CompositeEntity>();
-
-            foreach (var entity in response.Entities)
-            {
-                entities.Add(entity);
-            }
-            foreach (var intent in response.Intents)
-            {
-                intents.Add(intent);
-            }
-
-            if (response.TopScoringIntent.Intent != "MachineRequestData")
-            {
-                foreach (var compositeEntity in response.CompositeEntities)
-                {
-                    compositeEntities.Add(compositeEntity);
-                }
-            }
-
-            RootObject wholeData = new RootObject(
-                                    entities,
-                                    intents,
-                                    response.TopScoringIntent,
-                                    response.Query,
-                                    compositeEntities );
+            LuisResponse wholeData = JsonConvert.DeserializeObject<LuisResponse>(luisResponse);
 
             return wholeData;
         }
@@ -117,7 +81,7 @@ namespace WebAPITest.Services
         /// </summary>
         /// <param name="data">the response data from LUIS</param>
         /// <returns></returns>
-        private string ConstructQueryHelper(RootObject data)
+        private string ConstructQueryHelper(Query.LuisResponse data)
         {
             TopScoringIntent processedIntent = data.TopScoringIntent;
             string actualQuery = string.Empty;
@@ -145,10 +109,7 @@ namespace WebAPITest.Services
                     CompositeEntity kpiOrderPart = data.CompositeEntities.Find(e => (e.ParentType == "KPIrequestDataPart" && int.TryParse(e.Value, out buf)));
 
                     //filter request types without part
-                    if (processedIntent.Intent != "OrderRemainingWorkDeviation" &&
-                        processedIntent.Intent != "OrderEstimatedRemainigWork" &&
-                        processedIntent.Intent != "OrderActualRemainigWork" &&
-                        kpiOrderPart != null)
+                    if (processedIntent.nonOrderQuery() && kpiOrderPart != null)
                     {
 
                         string kpiOrderPartValue = kpiOrderPart.Value;
@@ -194,22 +155,16 @@ namespace WebAPITest.Services
         public async Task<string> ProcessText(string userRequestMessage)
         {
 
-            RootObject luisResponseData;
-
+            LuisResponse luisResponseData;
+            TopScoringIntent processedIntent = new TopScoringIntent();
+            KPIApiResponse responseFromAPI = new KPIApiResponse();
+            string queryForAPI;
             try
             {
                 luisResponseData = (await this.GetFromLuisAsync(userRequestMessage));
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
-
-            string queryForAPI;
-
-            try
-            {
                 queryForAPI = ConstructQueryHelper(luisResponseData);
+                processedIntent = luisResponseData.TopScoringIntent;
+                responseFromAPI = await this.GetFromApiAsync(queryForAPI, processedIntent.Intent);
             }
             catch (Exception ex)
             {
@@ -220,22 +175,10 @@ namespace WebAPITest.Services
                 return ex.Message;
             }
 
-            TopScoringIntent processedIntent = luisResponseData.TopScoringIntent;
-            ResponseData responseFromAPI;
-
-            try
-            {
-                responseFromAPI = await this.GetFromApiAsync(queryForAPI, processedIntent.Intent);
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
-
             string entity;
             string entityID;
             string partNumber = string.Empty;
-            string responseValue = responseFromAPI.value;
+            string responseValue = responseFromAPI.Value;
 
             if (processedIntent.Intent == "MachineRequestData")
             {

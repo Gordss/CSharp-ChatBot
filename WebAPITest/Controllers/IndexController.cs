@@ -13,9 +13,9 @@ namespace WebAPITest.Controllers
     {
         // GET: api/Index
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult Get()
         {
-            return new string[] { "Hello!", "This is dummy page :)" };
+            return Content("This is dummy page :)");
         }
     }
 }

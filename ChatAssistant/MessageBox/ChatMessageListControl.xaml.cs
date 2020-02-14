@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace ChatAssistant.MessageBox
 {
@@ -24,6 +25,17 @@ namespace ChatAssistant.MessageBox
         public ChatMessageListControl()
         {
             InitializeComponent();
+
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, 2);
+            timer.Tick += ((sender, e) =>
+            {
+                if (MessageList.VerticalOffset == MessageList.ScrollableHeight)
+                {
+                    MessageList.ScrollToEnd();
+                }
+            });
+            timer.Start();
         }
 
         /// <summary>

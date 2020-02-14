@@ -25,7 +25,6 @@ namespace WebAPITest.Services
         /// Gets query as a string (response from LUIS) and intent type then sends the data to the ICB API
         /// </summary>
         /// <returns>ResponceData object</returns>
-        //[HttpGet]
         private async Task<KPIApiResponse> GetFromApiAsync(string actualQuery, string intent)
         {
 
@@ -44,14 +43,19 @@ namespace WebAPITest.Services
             client.DefaultRequestHeaders.Add(Credentials.API_HEADER, Credentials.API_ID);
             HttpResponseMessage message = await client.PostAsync(url, new StringContent(actualQuery, Encoding.UTF8, "application/json"));
 
-            var json = await message.Content.ReadAsStringAsync();
+            if (!message.IsSuccessStatusCode)
+            {
+                throw new Exception($"Request from ICB API failed with status code {message.StatusCode}");
+            }
 
-            if (json == "[]")
+            string jsonResponce = await message.Content.ReadAsStringAsync();
+
+            if (jsonResponce == "[]")
             {
                 throw new Exception("No existing data for the query!");
             }
 
-            var topIntent = JObject.Parse(json.Trim('"', '"').Trim('[', ']')).ToObject<KPIApiResponse>();
+            KPIApiResponse topIntent = JObject.Parse(jsonResponce.Trim('"', '"').Trim('[', ']')).ToObject<KPIApiResponse>();
 
             return topIntent;
         }
@@ -61,10 +65,7 @@ namespace WebAPITest.Services
         /// </summary>
         /// <param name="utterance">the WPF user message</param>
         /// <returns>A JSON Object with data to make the query to send</returns>
-        // GET: api/Call/5
-        //[HttpGet("{id}", Name = "Get")]
-        //[HttpGet]
-        private async Task<Query.LuisResponse> GetFromLuisAsync(string utterance)
+        private async Task<LuisResponse> GetFromLuisAsync(string utterance)
         {
             string key = Credentials.LUIS_KEY;
             string endpoint = Credentials.LUIS_URL;
@@ -81,7 +82,7 @@ namespace WebAPITest.Services
         /// </summary>
         /// <param name="data">the response data from LUIS</param>
         /// <returns></returns>
-        private string ConstructQueryHelper(Query.LuisResponse data)
+        private string ConstructQueryHelper(LuisResponse data)
         {
             TopScoringIntent processedIntent = data.TopScoringIntent;
             string actualQuery = string.Empty;
@@ -111,7 +112,6 @@ namespace WebAPITest.Services
                     //filter request types without part
                     if (processedIntent.nonOrderQuery() && kpiOrderPart != null)
                     {
-
                         string kpiOrderPartValue = kpiOrderPart.Value;
                         if (kpiOrderPart != null)
                         {
@@ -136,13 +136,18 @@ namespace WebAPITest.Services
 
         private async Task<string> MakeRequest(string key, string endpoint, string appId, string utterance)
         {
-            var client = new HttpClient();
+            HttpClient client = new HttpClient();
 
-            var endpointUri = String.Format("{0}/{1}?verbose=true&timezoneOffset=0&subscription-key={2}&q={3}", endpoint, appId, key, utterance);
+            string endpointUri = String.Format("{0}/{1}?verbose=true&timezoneOffset=0&subscription-key={2}&q={3}", endpoint, appId, key, utterance);
 
-            var response = await client.GetAsync(endpointUri);
+            HttpResponseMessage response = await client.GetAsync(endpointUri);
 
-            var strResponseContent = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Request from LUIS failed with status code {response.StatusCode}");
+            }
+
+            string strResponseContent = await response.Content.ReadAsStringAsync();
 
             return strResponseContent;
         }
@@ -151,7 +156,7 @@ namespace WebAPITest.Services
         /// Gets user request, sends it to LUIS, gets data from ICB API and returns the final answer
         /// </summary>
         /// <param name="userRequestMessage">user message</param>
-        // <returns>API message</returns>
+        // <returns>API response message</returns>
         public async Task<string> ProcessText(string userRequestMessage)
         {
 
@@ -170,7 +175,7 @@ namespace WebAPITest.Services
             {
                 if (ex is NullReferenceException)
                 {
-                    return "Invalid query!";
+                    return "Can't proccess the query, ICB API can't find data for the query!";
                 }
                 return ex.Message;
             }
@@ -182,13 +187,13 @@ namespace WebAPITest.Services
 
             if (processedIntent.Intent == "MachineRequestData")
             {
-                var machineRequestObj = JsonConvert.DeserializeObject<MachineRequestData>(queryForAPI);
+                MachineRequestData machineRequestObj = JsonConvert.DeserializeObject<MachineRequestData>(queryForAPI);
                 entity = machineRequestObj.Type;
                 entityID = machineRequestObj.SensorID;
             }
             else
             {
-                var kpiRequestObj = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(queryForAPI);
+                KPIRequestDataWithPart kpiRequestObj = JsonConvert.DeserializeObject<KPIRequestDataWithPart>(queryForAPI);
                 entity = kpiRequestObj.KpiType;
                 entityID = kpiRequestObj.WorkOrder;
 

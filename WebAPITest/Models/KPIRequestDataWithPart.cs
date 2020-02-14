@@ -13,21 +13,6 @@ namespace WebAPITest.Models
         private string part;
         #endregion
 
-        #region Constructors
-
-        //public KPIRequestDataWithPart(string _workOrder, string _kpiType, string _part)
-        //{
-        //    WorkOrder = _workOrder;
-        //    KpiType = _kpiType;
-        //    Part = _part;
-        //}
-
-        //public KPIRequestDataWithPart() : this("", "", "") { }
-
-        //public KPIRequestDataWithPart(KPIRequestDataWithPart data) : this(data.WorkOrder, data.KpiType, data.Part) { }
-
-        #endregion
-
         #region Properties
         public string WorkOrder
         {

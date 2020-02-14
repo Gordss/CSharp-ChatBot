@@ -9,7 +9,7 @@ namespace WebAPITest.Models
     {
         public class TopScoringIntent
         {
-            public string Intent { get; set; } //Rename it to IntentValue
+            public string Intent { get; set; }
             public double Score { get; set; }
 
             public bool nonOrderQuery()
@@ -33,20 +33,11 @@ namespace WebAPITest.Models
 
         public class Entity
         {
-            public string entity { get; set; } //Rename to EntityValue
+            public string entity { get; set; }
             public string Type { get; set; }
             public int StartIndex { get; set; }
             public int EndIndex { get; set; }
             public Resolution resolution { get; set; }
-
-            //public Entity(string _entity, string type, int startIndex, int endIndex, Resolution _resolution)
-            //{
-            //    entity = _entity;
-            //    Type = type;
-            //    StartIndex = startIndex;
-            //    EndIndex = endIndex;
-            //    resolution = _resolution;
-            //}
 
         }
 
@@ -82,7 +73,6 @@ namespace WebAPITest.Models
             public string ParentType { get; set; }
 
             public string Value { get; set; }
-
             public List<CompositeEntitiesChildren> Children { get; set; }
         }
     }

@@ -53,8 +53,10 @@ namespace ChatAssistant
             {
                 System.Windows.MessageBox.Show($"Request failed with status code {message.StatusCode}");
             }
-
-            MessageContainer.AddMessage((await message.Content.ReadAsStringAsync()).ToString(), false);
+            else
+            {
+                MessageContainer.AddMessage((await message.Content.ReadAsStringAsync()).ToString(), false);
+            }
         }
     }
 }

@@ -11,6 +11,11 @@
         <Border Background="{Binding SentByUser, Converter={localConverter:SentByUserMessageBackgroundConverter}}" CornerRadius="{Binding SentByUser, Converter={localConverter:SentByUserMessageCornerRadiusConverter}}" Margin="10 12">
             <TextBlock Margin="15" TextWrapping="Wrap" Text="{Binding Message}" Foreground="White" />
         </Border>
-        <TextBlock Text="{Binding TimeStamp, Converter={localConverter:TimeToDisplayTimeConverter}}" HorizontalAlignment="{Binding SentByUser, Converter={localConverter:SentByUserAlignmentConverter}}" VerticalAlignment="Bottom" FontSize="10" Margin="10 0" />
+        <TextBlock Text="{Binding TimeStamp, Converter={localConverter:TimeToDisplayTimeConverter}}"
+                   HorizontalAlignment="{Binding SentByUser, Converter={localConverter:SentByUserAlignmentConverter}}"
+                   VerticalAlignment="Bottom"
+                   Foreground="{StaticResource TextColorBrush}"
+                   FontSize="10"
+                   Margin="10 0" />
     </Grid>
 </UserControl>

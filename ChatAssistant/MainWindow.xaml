@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Title="Assistant" Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
-    <Grid Background="#95a5a6" FocusManager.FocusedElement="{Binding ElementName=InputField}">
+    <Grid Background="{StaticResource ChatBackgroundBrush}" FocusManager.FocusedElement="{Binding ElementName=InputField}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="50" />
@@ -18,7 +18,7 @@
         <local:ChatMessageListControl x:Name="MessageContainer"/>
 
         <!--Input panel-->
-        <Border Grid.Row="1" Background="#27ae60" VerticalAlignment="Bottom">
+        <Border Grid.Row="1" Background="{StaticResource ChatInputBoxBackgroundBrush}" VerticalAlignment="Bottom">
             <Grid MinHeight="50">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -29,6 +29,7 @@
                          Background="Transparent"
                          Grid.Column="0"
                          Text=""
+                         Foreground="{StaticResource TextColorBrush}"
                          MaxHeight="80"
                          FontSize="14"
                          VerticalAlignment="Center"

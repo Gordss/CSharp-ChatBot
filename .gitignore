@@ -26,6 +26,9 @@ docs/_site
 # Build results
 
 .vs/
+WebAPITest/bin/
+WebAPITest/obj/
+WebAPITest/Settings/
 
 [Dd]ebug/
 [Rr]elease/
